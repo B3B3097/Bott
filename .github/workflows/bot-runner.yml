@@ -25,9 +25,9 @@ jobs:
 
     - name: Run Bot
       env:
-        BOT_TOKEN: \${{ secrets.BOT_TOKEN }}
-        CRYPTO_PAY_TOKEN: \${{ secrets.CRYPTO_PAY_TOKEN }}
-        ADMIN_ID: \${{ secrets.ADMIN_ID }}
-        CHANNEL_ID: \${{ secrets.CHANNEL_ID }}
-        DEFAULT_PRICE: \${{ secrets.DEFAULT_PRICE }}
+        BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+        CRYPTO_PAY_TOKEN: ${{ secrets.CRYPTO_PAY_TOKEN }}
+        ADMIN_ID: ${{ secrets.ADMIN_ID }}
+        CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
+        DEFAULT_PRICE: ${{ secrets.DEFAULT_PRICE }}
       run: python bot.py
