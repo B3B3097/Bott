@@ -1,4 +1,4 @@
-name: 24/7 Telegram Bot Runner
+name: 24/7 Telegram AdBot
 
 on:
   push:
@@ -10,20 +10,42 @@ on:
 jobs:
   run-bot:
     runs-on: ubuntu-latest
+    timeout-minutes: 350
+
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-    - run: pip install aiogram aiohttp
-    - name: Run Bot
-      env:
-        BOT_TOKEN: "${{ secrets.BOT_TOKEN }}"
-        CRYPTO_PAY_TOKEN: "${{ secrets.CRYPTO_PAY_TOKEN }}"
-        ADMIN_ID: "${{ secrets.ADMIN_ID }}"
-        CHANNEL_ID: "${{ secrets.CHANNEL_ID }}"
-      run: |
-        until python main_vps.py; do
-          echo "Crashed. Restarting..."
-          sleep 5
-        done
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: pip-
+
+      - name: Restore database
+        uses: actions/cache@v4
+        with:
+          path: data/
+          key: bot-db-${{ github.run_number }}
+          restore-keys: bot-db-
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Bot (auto-restart on crash)
+        env:
+          BOT_TOKEN:        ${{ secrets.BOT_TOKEN }}
+          CRYPTO_PAY_TOKEN: ${{ secrets.CRYPTO_PAY_TOKEN }}
+          ADMIN_ID:         ${{ secrets.ADMIN_ID }}
+          CHANNEL_ID:       ${{ secrets.CHANNEL_ID }}
+          GH_AI_TOKEN:      ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p data
+          until python bot.py; do
+            echo "$(date): Bot crashed. Restarting in 5 s..."
+            sleep 5
+          done
