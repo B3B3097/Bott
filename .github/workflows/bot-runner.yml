@@ -40,6 +40,27 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Check required secrets
+        run: |
+          echo "Checking required environment variables..."
+          MISSING=""
+          [ -z "$BOT_TOKEN" ]        && MISSING="$MISSING BOT_TOKEN"
+          [ -z "$CRYPTO_PAY_TOKEN" ] && MISSING="$MISSING CRYPTO_PAY_TOKEN"
+          if [ -n "$MISSING" ]; then
+            echo "❌ Missing required secrets:$MISSING"
+            echo "Go to: Settings → Secrets → Actions → New repository secret"
+            exit 1
+          fi
+          echo "✅ BOT_TOKEN is set"
+          echo "✅ CRYPTO_PAY_TOKEN is set"
+          [ -z "$ADMIN_ID" ]   && echo "⚠️  ADMIN_ID not set — admin commands disabled" || echo "✅ ADMIN_ID is set"
+          [ -z "$CHANNEL_ID" ] && echo "⚠️  CHANNEL_ID not set — channel posting disabled" || echo "✅ CHANNEL_ID is set"
+        env:
+          BOT_TOKEN:        ${{ secrets.BOT_TOKEN }}
+          CRYPTO_PAY_TOKEN: ${{ secrets.CRYPTO_PAY_TOKEN }}
+          ADMIN_ID:         ${{ secrets.ADMIN_ID }}
+          CHANNEL_ID:       ${{ secrets.CHANNEL_ID }}
+
       - name: Run Bot (auto-restart on crash)
         env:
           BOT_TOKEN:        ${{ secrets.BOT_TOKEN }}
