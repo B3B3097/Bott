@@ -3,7 +3,7 @@ import logging
 import os
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
-from config import BOT_TOKEN
+from config import BOT_TOKEN, validate
 import database as db
 from handlers import user, admin
 from utils.scheduler import setup_scheduler
@@ -14,24 +14,20 @@ logging.basicConfig(
 )
 
 async def main():
-    # Ensure data directory exists
+    # Validate config — exits with error if BOT_TOKEN missing
+    validate()
+
     os.makedirs("data", exist_ok=True)
-    
-    # Initialize database
     await db.init_db()
-    
-    # Initialize bot and dispatcher
+
     bot = Bot(token=BOT_TOKEN)
-    dp = Dispatcher(storage=MemoryStorage())
-    
-    # Include routers (admin first to avoid conflicts)
+    dp  = Dispatcher(storage=MemoryStorage())
+
     dp.include_router(admin.router)
     dp.include_router(user.router)
-    
-    # Setup scheduler for slot expiry checks
+
     setup_scheduler(bot)
-    
-    # Start polling
+
     logging.info("Bot is starting...")
     await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
 
